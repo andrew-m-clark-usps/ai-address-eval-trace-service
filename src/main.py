@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from src.config import ServiceConfig
 from src.dashboard.generator import DashboardGenerator
 from src.evaluator.datasets import EvalDataset
+from src.evaluator.mlflow_integration import MLflowTracker, is_available as mlflow_available
 from src.evaluator.runner import EvaluationRunner
 from src.tracer.core import Tracer
 
@@ -69,6 +70,23 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=str,
         default=None,
         help="Export raw traces to JSON file",
+    )
+    parser.add_argument(
+        "--mlflow",
+        action="store_true",
+        help="Enable MLflow experiment tracking (requires mlflow package)",
+    )
+    parser.add_argument(
+        "--mlflow-uri",
+        type=str,
+        default=None,
+        help="MLflow tracking server URI (default: local ./mlruns)",
+    )
+    parser.add_argument(
+        "--mlflow-experiment",
+        type=str,
+        default="address-verification-eval",
+        help="MLflow experiment name (default: address-verification-eval)",
     )
     return parser.parse_args(argv)
 
@@ -147,6 +165,35 @@ def run(args: argparse.Namespace) -> int:
     )
 
     logger.info("Dashboard generated: %s", output_path)
+
+    # MLflow tracking
+    if args.mlflow:
+        if not mlflow_available():
+            logger.error(
+                "MLflow tracking requested but mlflow is not installed.  "
+                "Install with: pip install mlflow"
+            )
+        else:
+            logger.info("Logging run to MLflow")
+            tracker = MLflowTracker(
+                experiment_name=args.mlflow_experiment,
+                tracking_uri=args.mlflow_uri,
+            )
+            tracker.log_evaluation_run(
+                run_id=run_id,
+                eval_metrics=eval_metrics,
+                trace_metrics=trace_metrics,
+                traces=traces_data,
+                dataset_info={
+                    "name": dataset.name,
+                    "version": dataset.version,
+                    "total_cases": len(dataset.cases),
+                },
+                model_url=config.model.base_url,
+                simulate=args.simulate,
+                dashboard_path=output_path,
+            )
+
     logger.info("Run complete: %s", run_id)
 
     # Print summary to stdout
@@ -160,6 +207,8 @@ def run(args: argparse.Namespace) -> int:
     latency = trace_metrics.get("latency", {}).get("total", {}).get("mean_ms", 0)
     print(f"  Mean Latency:   {latency:.1f}ms")
     print(f"  Dashboard:      {output_path}")
+    if args.mlflow and mlflow_available():
+        print(f"  MLflow:         Experiment '{args.mlflow_experiment}'")
     print(f"{'='*60}\n")
 
     return 0
