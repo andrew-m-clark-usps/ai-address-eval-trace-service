@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from jinja2 import Environment, BaseLoader
+from jinja2 import BaseLoader, Environment
 
 logger = logging.getLogger(__name__)
 

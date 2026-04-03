@@ -8,7 +8,7 @@ from typing import Any
 
 from src.evaluator.datasets import EvalCase, EvalDataset
 from src.evaluator.metrics import EvaluationResult, MetricsCalculator
-from src.tracer.core import TraceRecord, Tracer
+from src.tracer.core import Tracer, TraceRecord
 
 logger = logging.getLogger(__name__)
 

@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import sys
 from datetime import datetime, timezone
-from pathlib import Path
 
-from src.config import ModelEndpointConfig, ServiceConfig
+from src.config import ServiceConfig
 from src.dashboard.generator import DashboardGenerator
 from src.evaluator.datasets import EvalDataset
 from src.evaluator.runner import EvaluationRunner
@@ -159,7 +157,8 @@ def run(args: argparse.Namespace) -> int:
     print(f"  Accuracy:       {summary.get('overall_accuracy', 0)*100:.1f}%")
     print(f"  Exact Match:    {summary.get('exact_match_rate', 0)*100:.1f}%")
     print(f"  Error Rate:     {summary.get('error_rate', 0)*100:.1f}%")
-    print(f"  Mean Latency:   {trace_metrics.get('latency',{}).get('total',{}).get('mean_ms',0):.1f}ms")
+    latency = trace_metrics.get("latency", {}).get("total", {}).get("mean_ms", 0)
+    print(f"  Mean Latency:   {latency:.1f}ms")
     print(f"  Dashboard:      {output_path}")
     print(f"{'='*60}\n")
 
