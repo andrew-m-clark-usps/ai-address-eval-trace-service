@@ -1,2 +1,0 @@
-[console_scripts]
-eval-trace = src.main:main
