@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-address-eval-trace-service"
+version = "1.0.0"
+description = "Trace and evaluation service for AI address verification models"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31.0,<3.0.0",
+    "jinja2>=3.1.0,<4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "ruff>=0.4.0",
+]
+mlflow = [
+    "mlflow>=2.10.0,<3.0.0",
+]
+
+[project.scripts]
+eval-trace = "src.main:main"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/dashboard/generator.py" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
