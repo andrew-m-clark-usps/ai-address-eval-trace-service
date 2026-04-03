@@ -9,7 +9,7 @@ Trace and evaluation service for AI address verification models. Captures span-l
 This service wraps an external AI address verification model endpoint and provides:
 
 - **Tracing** — Span-based instrumentation capturing preprocessing, network, inference, and postprocessing phases with latency distributions (min, median, mean, p90, p95, p99, max), throughput, and confidence scoring.
-- **Evaluation** — Structured test suites covering 9 address categories (standard, abbreviation, error correction, missing data, PO Box, rural, military, ZIP+4, invalid). Per-component accuracy (street, city, state, ZIP), category breakdowns, and confidence-correctness correlation.
+- **Evaluation** — Structured test suites covering 10 address categories (standard, abbreviation, error correction, missing data, PO Box, rural, military, ZIP+4, unit, invalid). Per-component accuracy (street, city, state, ZIP), category breakdowns, and confidence-correctness correlation.
 - **Dashboard** — Static single-file HTML report with a dark professional theme, Chart.js visualizations, expandable per-case detail rows, and historical trend tracking across runs.
 - **Simulation Mode** — Generates realistic trace data without requiring a live model endpoint, useful for development, CI pipelines, and dashboard testing.
 
@@ -184,7 +184,7 @@ tests/
   test_tracer.py        # Test suite covering all modules
 data/
   eval_sets/
-    addresses.json      # Default evaluation dataset (16 cases, 9 categories)
+    addresses.json      # Default evaluation dataset (16 cases, 10 categories)
 ```
 
 ## Development
