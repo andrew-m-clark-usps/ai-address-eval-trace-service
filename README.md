@@ -12,6 +12,7 @@ This service wraps an external AI address verification model endpoint and provid
 - **Evaluation** — Structured test suites covering 10 address categories (standard, abbreviation, error correction, missing data, PO Box, rural, military, ZIP+4, unit, invalid). Per-component accuracy (street, city, state, ZIP), category breakdowns, and confidence-correctness correlation.
 - **Dashboard** — Static single-file HTML report with a dark professional theme, Chart.js visualizations, expandable per-case detail rows, and historical trend tracking across runs.
 - **Simulation Mode** — Generates realistic trace data without requiring a live model endpoint, useful for development, CI pipelines, and dashboard testing.
+- **MLflow Integration** — Optional experiment tracking via MLflow. Log metrics, parameters, and artifacts (dashboard, traces, dataset) to a local or remote MLflow tracking server for cross-run comparison and model lifecycle management.
 
 ## Quick Start
 
@@ -51,6 +52,8 @@ python -m src.main --simulate --dataset data/eval_sets/addresses.json
 usage: eval-trace [-h] [--config CONFIG] [--model-url MODEL_URL]
                   [--dataset DATASET] [--output-dir OUTPUT_DIR]
                   [--simulate] [--verbose] [--export-traces EXPORT_TRACES]
+                  [--mlflow] [--mlflow-uri MLFLOW_URI]
+                  [--mlflow-experiment MLFLOW_EXPERIMENT]
 
 Options:
   --config CONFIG           Path to JSON config file
@@ -60,6 +63,9 @@ Options:
   --simulate                Run with simulated model responses
   --verbose, -v             Enable debug logging
   --export-traces FILE      Export raw traces to JSON file
+  --mlflow                  Enable MLflow experiment tracking
+  --mlflow-uri URI          MLflow tracking server URI (default: local ./mlruns)
+  --mlflow-experiment NAME  MLflow experiment name (default: address-verification-eval)
 ```
 
 ## Configuration
@@ -178,10 +184,12 @@ src/
     datasets.py         # EvalCase, EvalDataset with built-in test cases
     metrics.py          # MetricsCalculator, ComponentScore, EvaluationResult
     runner.py           # EvaluationRunner with live and simulation modes
+    mlflow_integration.py  # Optional MLflow experiment tracking
   dashboard/
     generator.py        # Static HTML dashboard generator with Jinja2
 tests/
   test_tracer.py        # Test suite covering all modules
+  test_mlflow_integration.py  # Tests for MLflow integration
 data/
   eval_sets/
     addresses.json      # Default evaluation dataset (16 cases, 10 categories)
@@ -192,6 +200,9 @@ data/
 ```bash
 # Install with dev dependencies
 pip install -e ".[dev]"
+
+# Install with MLflow support
+pip install -e ".[mlflow]"
 
 # Run tests
 pytest
@@ -206,10 +217,70 @@ python -m src.main --simulate --verbose
 python -m src.main --simulate --export-traces traces.json
 ```
 
+## MLflow Experiment Tracking
+
+Enable MLflow to log evaluation runs for cross-run comparison, metric trending, and artifact management.
+
+### Setup
+
+```bash
+pip install -e ".[mlflow]"
+```
+
+### Run with MLflow (local tracking)
+
+```bash
+python -m src.main --simulate --mlflow
+```
+
+This creates a `./mlruns` directory with experiment data. View the results:
+
+```bash
+mlflow ui
+# Open http://localhost:5000
+```
+
+### Run with remote MLflow server
+
+```bash
+python -m src.main --simulate --mlflow --mlflow-uri http://mlflow-server:5000
+```
+
+### What gets logged
+
+Each evaluation run logs the following to MLflow:
+
+**Parameters:**
+- `run_id`, `simulate`, `model_url`
+- `dataset_name`, `dataset_version`, `dataset_total_cases`
+
+**Metrics:**
+- `overall_accuracy`, `exact_match_rate`, `error_rate`, `total_cases`
+- `latency_mean_ms`, `latency_p95_ms`, `latency_p99_ms`, etc.
+- `throughput_requests_per_second`, `throughput_error_rate`
+- `confidence_mean`, `confidence_median`, `confidence_std_dev`
+- `component_street_accuracy`, `component_city_accuracy`, etc.
+- `category_standard_accuracy`, `category_invalid_accuracy`, etc.
+
+**Artifacts:**
+- `eval_metrics.json` — Full evaluation results
+- `trace_metrics.json` — Trace-level performance data
+- `traces.json` — Raw trace records
+- `dashboard.html` — Generated dashboard report
+
+### Framework Selection
+
+MLflow was selected after evaluating 8 ML evaluation frameworks. See
+[docs/framework_analysis.md](docs/framework_analysis.md) for the full analysis
+comparing TensorFlow Model Analysis, MLflow, Weights & Biases, Hugging Face
+Evaluate, PyCaret, ClearML, Keras Tuner, and specialized LLM evaluation
+frameworks.
+
 ## Requirements
 
 - Python 3.10+
 - `requests` — HTTP client for model endpoint calls
 - `jinja2` — HTML template rendering
+- `mlflow` — Experiment tracking (optional, install with `pip install -e ".[mlflow]"`)
 - `pytest` — Testing (dev)
 - `ruff` — Linting (dev)

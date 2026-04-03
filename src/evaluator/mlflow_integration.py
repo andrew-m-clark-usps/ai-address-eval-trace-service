@@ -21,7 +21,9 @@ try:
     from mlflow.exceptions import MlflowException
 
     MLFLOW_AVAILABLE = True
-except ImportError:  # pragma: no cover
+except ImportError:
+    mlflow = None  # type: ignore[assignment]
+    MlflowException = Exception  # type: ignore[assignment,misc]
     MLFLOW_AVAILABLE = False
 
 

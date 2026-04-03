@@ -17,6 +17,9 @@ dev = [
     "pytest>=7.4.0",
     "ruff>=0.4.0",
 ]
+mlflow = [
+    "mlflow>=2.10.0,<3.0.0",
+]
 
 [project.scripts]
 eval-trace = "src.main:main"

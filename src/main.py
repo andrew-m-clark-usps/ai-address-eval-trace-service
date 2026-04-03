@@ -10,7 +10,8 @@ from datetime import datetime, timezone
 from src.config import ServiceConfig
 from src.dashboard.generator import DashboardGenerator
 from src.evaluator.datasets import EvalDataset
-from src.evaluator.mlflow_integration import MLflowTracker, is_available as mlflow_available
+from src.evaluator.mlflow_integration import MLflowTracker
+from src.evaluator.mlflow_integration import is_available as mlflow_available
 from src.evaluator.runner import EvaluationRunner
 from src.tracer.core import Tracer
 
